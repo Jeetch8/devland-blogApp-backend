@@ -29,8 +29,16 @@ app.use(expressFileUpload({ tempFileDir: "/tmp/", useTempFiles: true }));
 
 // Routes
 
+app.get("/", (req, res) => {
+  res.cookie("testToken", "testTokenValue", {
+    httpOnly: false,
+    expires: new Date(Date.now() + 900000),
+    secure: true,
+  });
+  res.status(200).json("Cookies set");
+});
 app.use("/api/v1/blogs", require("./Routes/Blog_Routes"));
-app.use("/api/v1/user/auth", require("./Routes/User_Routes"));
+app.use("/api/v1/auth", require("./Routes/Auth_Routes"));
 app.use("/api/v1/imageUpload", require("./Routes/ImageUpload_Routes"));
 
 app.use(notFoundMiddleware);

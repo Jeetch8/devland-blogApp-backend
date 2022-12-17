@@ -5,7 +5,7 @@ const {
   verifyEmailforRegistration,
   forgotPassStep2,
   forgotPasswordStep1,
-} = require("../Controller/Auth_Controller");
+} = require("../Controllers/Auth_Controllers");
 const router = require("./Blog_Routes");
 
 router.get("/logout", logout);

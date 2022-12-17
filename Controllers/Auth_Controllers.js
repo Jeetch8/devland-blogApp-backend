@@ -1,14 +1,13 @@
 const CustomError = require("../errors");
 const uuid = require("uuid");
-const { createJWT } = require("../utils");
+const { createJWT } = require("../Utlis/jwt");
 const User = require("../Models/User_Model");
-const { sendMailJetEmail } = require("../utils/SendEmail");
-const { logoutClearCookie } = require("../utils/AttachCookies");
+const { sendMailJetEmail } = require("../Utlis/SendEmail");
 
 const register = async (req, res) => {
   const { email, name, password, profileImg, address } = req.body;
 
-  if (!email || !name || !password || !address) {
+  if (!email || !name || !password) {
     throw new CustomError.BadRequestError(
       "Please fill in all details to register"
     );
@@ -38,7 +37,6 @@ const register = async (req, res) => {
     password,
     profileImg,
     accountVerification: uuid1,
-    address,
   });
   const token = createJWT({ userId: user._id, userName: user.name });
   if (!token) {
@@ -103,9 +101,9 @@ const logout = async (req, res) => {
   const updateToken = await User.findByIdAndUpdate(userId, {
     accessToken: "",
   });
-  logoutClearCookie(res, "token");
-  logoutClearCookie(res, "userName");
-  logoutClearCookie(res, "userId");
+  // logoutClearCookie(res, "token");
+  // logoutClearCookie(res, "userName");
+  // logoutClearCookie(res, "userId");
   res.status(201).json({ msg: "user logged out!" });
 };
 

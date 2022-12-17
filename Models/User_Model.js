@@ -33,6 +33,9 @@ const userSchema = new mongoose.Schema({
       },
     },
   ],
+  accountVerification: {
+    type: String,
+  },
 });
 
 userSchema.pre("save", async () => {
