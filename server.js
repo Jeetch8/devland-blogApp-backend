@@ -37,6 +37,7 @@ app.get("/", (req, res) => {
     httpOnly: false,
     expires: new Date(Date.now() + 900000),
     secure: true,
+    sameSite: "none",
   });
   res.status(200).json("Cookies set");
 });
