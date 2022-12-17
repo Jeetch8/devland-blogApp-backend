@@ -31,7 +31,7 @@ app.use(expressFileUpload({ tempFileDir: "/tmp/", useTempFiles: true }));
 
 app.get("/", (req, res) => {
   res.cookie("testToken", "testTokenValue", {
-    httpOnly: false,
+    httpOnly: true,
     expires: new Date(Date.now() + 900000),
     secure: true,
   });
