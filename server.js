@@ -11,15 +11,18 @@ const expressFileUpload = require("express-fileupload");
 const notFoundMiddleware = require("./Middleware/Not_Found_Middleware");
 const errorHandlerMiddleware = require("./Middleware/error-handler");
 const mongoSanitize = require("express-mongo-sanitize");
+const { setOriginHeader } = require("./Middleware/OriginSetter");
 
 // Middleware
-// app.use(setOriginHeader);
 app.use(
   cors({
-    origin: ["https://parlour-frontend.vercel.app", "http://localhost:3000"],
+    origin: [
+      "http://localhost:3000",
+      "https://blog-app-frontend-opal.vercel.app",
+    ],
   })
 );
-// app.use(helmet());
+// app.use(setOriginHeader());
 app.use(mongoSanitize());
 app.use(express.json({ limit: "100mb" }));
 app.use(cookieParser());
@@ -31,7 +34,7 @@ app.use(expressFileUpload({ tempFileDir: "/tmp/", useTempFiles: true }));
 
 app.get("/", (req, res) => {
   res.cookie("testToken", "testTokenValue", {
-    httpOnly: true,
+    httpOnly: false,
     expires: new Date(Date.now() + 900000),
     secure: true,
   });
