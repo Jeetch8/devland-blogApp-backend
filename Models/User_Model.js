@@ -6,6 +6,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     require: true,
   },
+  profileImg: {
+    type: String,
+  },
   email: {
     type: String,
     require: true,
@@ -38,10 +41,14 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre("save", async () => {
+userSchema.pre("save", async function () {
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
 });
+
+userSchema.methods.checkCryptedPassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
 
 module.exports = mongoose.model("user", userSchema);

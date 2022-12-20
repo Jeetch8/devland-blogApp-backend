@@ -17,12 +17,11 @@ const { setOriginHeader } = require("./Middleware/OriginSetter");
 app.use(
   cors({
     origin: [
-      "http://localhost:3000",
+      "https://localhost:3000",
       "https://blog-app-frontend-opal.vercel.app",
     ],
   })
 );
-// app.use(setOriginHeader());
 app.use(mongoSanitize());
 app.use(express.json({ limit: "100mb" }));
 app.use(cookieParser());
@@ -31,16 +30,6 @@ app.use(express.static("./public"));
 app.use(expressFileUpload({ tempFileDir: "/tmp/", useTempFiles: true }));
 
 // Routes
-
-app.get("/", (req, res) => {
-  res.cookie("testToken", "testTokenValue", {
-    httpOnly: false,
-    expires: new Date(Date.now() + 900000),
-    secure: true,
-    sameSite: "none",
-  });
-  res.status(200).json("Cookies set");
-});
 app.use("/api/v1/blogs", require("./Routes/Blog_Routes"));
 app.use("/api/v1/auth", require("./Routes/Auth_Routes"));
 app.use("/api/v1/imageUpload", require("./Routes/ImageUpload_Routes"));

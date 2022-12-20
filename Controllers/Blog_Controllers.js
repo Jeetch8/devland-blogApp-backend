@@ -1,4 +1,19 @@
 const Blog = require("../Models/Blog_Model");
+const CustomError = require("../errors");
+
+exports.createNewBlog = async (req, res) => {
+  const { HTMLBody, title, blogImg } = req.body;
+  if (!HTMLBody && !title && !blogImg) {
+    throw new CustomError.BadRequestError("All feilds are required");
+  }
+  const newBlog = await Blog.create({
+    HTMLBody,
+    title,
+    blogImg,
+    creator: req.user.userId,
+  });
+  res.status(201).json({ success: true });
+};
 
 exports.getAllBlogs = async (req, res) => {
   const blogs = await Blog.find({});
@@ -50,8 +65,6 @@ exports.editBlog = async (req, res) => {
   );
   res.status(200).json({ success: true, updateBlog });
 };
-
-const CustomError = require("../errors");
 
 exports.getSingleBlog = async (req, res) => {
   const { blogId } = req.params;

@@ -1,11 +1,10 @@
 const CustomError = require("../errors");
-const uuid = require("uuid");
 const { createJWT } = require("../Utlis/jwt");
 const User = require("../Models/User_Model");
-const { sendMailJetEmail } = require("../Utlis/SendEmail");
 
 const register = async (req, res) => {
-  const { email, name, password, profileImg, address } = req.body;
+  const { email, name, password, profileImg } = req.body;
+  console.log(req.body);
 
   if (!email || !name || !password) {
     throw new CustomError.BadRequestError(
@@ -14,40 +13,36 @@ const register = async (req, res) => {
   }
 
   const emailAlreadyExists = await User.findOne({ email });
+  console.log(emailAlreadyExists);
   if (emailAlreadyExists) {
     throw new CustomError.BadRequestError("Email already exists");
-  }
-  const uuid1 = uuid.v1();
-  const uuidLink = `https://parlour-frontend.vercel.app/registration-success/${uuid1}`;
-
-  const sendMail = await sendMailJetEmail({
-    reciverEmail: email,
-    reciverName: name,
-    emailPurpose: "emailVerfication",
-    uuidLink,
-  });
-  if (sendMail !== 200) {
-    throw new CustomError.BadRequestError(
-      "Something went wrong, Please try again email"
-    );
   }
   const user = await User.create({
     name,
     email,
     password,
     profileImg,
-    accountVerification: uuid1,
   });
-  const token = createJWT({ userId: user._id, userName: user.name });
+  if (!user) {
+    throw new CustomError.BadRequestError("Something went wrong");
+  }
+  console.log(user);
+  const token = await createJWT(
+    { userId: user._id, userName: user.name },
+    "30d"
+  );
   if (!token) {
-    throw new CustomError.BadRequestError(
-      "Somthing went wrong, please try again"
-    );
+    throw new CustomError.CustomAPIError("Something went wrong");
   }
 
-  await res.status(200).json({
+  res.status(200).json({
     success: true,
-    message: `Account Verification Link sent to ${email}`,
+    profileImg: user.profileImg,
+    userName: user.name,
+    email: user.email,
+    address: user.address,
+    userId: user._id,
+    token,
   });
 };
 
@@ -92,7 +87,6 @@ const login = async (req, res) => {
     address: user.address,
     userId: user._id,
     token,
-    role: "user",
   });
 };
 
