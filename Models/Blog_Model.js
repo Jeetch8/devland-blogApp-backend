@@ -13,6 +13,9 @@ const blogSchema = new mongoose.Schema(
     blogImg: {
       type: String,
     },
+    readingTime: {
+      type: String,
+    },
     commentArray: [
       {
         commentText: {

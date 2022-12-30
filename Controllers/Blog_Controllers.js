@@ -1,24 +1,74 @@
 const Blog = require("../Models/Blog_Model");
 const CustomError = require("../errors");
+const readingTime = require("reading-time");
+const User = require("../Models/User_Model");
+const { convert } = require("html-to-text");
+const mongoose = require("mongoose");
 
 exports.createNewBlog = async (req, res) => {
-  const { HTMLBody, title, blogImg } = req.body;
-  if (!HTMLBody && !title && !blogImg) {
+  const { HTMLBody, title, blogImg, status } = req.body;
+  if (!HTMLBody || !title || !blogImg || !status) {
     throw new CustomError.BadRequestError("All feilds are required");
   }
+
   const newBlog = await Blog.create({
     HTMLBody,
     title,
     blogImg,
+    status,
     creator: req.user.userId,
+    readingTime: readingTime(convert(HTMLBody)).text,
   });
   res.status(201).json({ success: true });
 };
 
 exports.getAllBlogs = async (req, res) => {
-  const blogs = await Blog.find({});
-  // statsRecorder();
-  res.status(201).json({ blogs });
+  const headerUserId = req.headers.userid;
+  const blogs = await Blog.aggregate([
+    {
+      $lookup: {
+        from: "users",
+        localField: "creator",
+        foreignField: "_id",
+        as: "results",
+      },
+    },
+    {
+      $unwind: {
+        path: "$results",
+      },
+    },
+    {
+      $project: {
+        "results.password": 0,
+        "results.following": 0,
+        "results.followers": 0,
+        "results.bookmarks": 0,
+        "results.email": 0,
+        creator: 0,
+      },
+    },
+  ]);
+  if (headerUserId) {
+    let userSavedBlogs = await User.findById("63a271979c6782c99c0dd086")
+      .populate({
+        path: "bookmarks",
+        populate: {
+          path: "category.blogs",
+        },
+      })
+      .select("bookmarks");
+    const allBlogList = [];
+    userSavedBlogs.bookmarks.forEach((el) => {
+      el.category.blogs.forEach((blog) => {
+        if (allBlogList.indexOf(blog._id) !== -1) return;
+        allBlogList.push(blog._id);
+      });
+    });
+    res.status(200).json({ blogs, bookmarks: userSavedBlogs, allBlogList });
+  } else {
+    res.status(200).json({ blogs });
+  }
 };
 
 exports.getSingleBlog = async (req, res) => {
@@ -30,7 +80,7 @@ exports.getSingleBlog = async (req, res) => {
       select: "name profileImg",
     },
   });
-  res.status(201).json({ blog });
+  res.status(200).json({ blog });
 };
 
 exports.deleteComment = async (req, res) => {
@@ -66,34 +116,6 @@ exports.editBlog = async (req, res) => {
   res.status(200).json({ success: true, updateBlog });
 };
 
-exports.getSingleBlog = async (req, res) => {
-  const { blogId } = req.params;
-  const blog = await Blog.findById(blogId)
-    .populate("user", "name profilePic")
-    .populate({
-      path: "commentArray",
-      populate: { path: "user", select: "name profilePic" },
-    });
-  res.status(201).json({ blog, success: true });
-};
-
-exports.createBlog = async (req, res) => {
-  const { title, HTMLBody, status } = req.body;
-  const { userId } = req.user;
-  try {
-    const blog = await Blog.create({
-      title,
-      HTMLBody,
-      user: userId,
-      status,
-    });
-    res.status(201).json({ blog });
-  } catch (error) {
-    console.log(error);
-    res.status(401).json({ error });
-  }
-};
-
 exports.deleteBlog = async (req, res) => {
   const { userId } = req.user;
   const { blogId } = req.body;
@@ -127,15 +149,6 @@ exports.updateBlog = async (req, res) => {
   res.status(201).json({ updatedBlog });
 };
 
-exports.getAllHomeBlogs = async (req, res) => {
-  const blogs = await Blog.find({}).populate("user", "profilePic name");
-  const blogTitleArray = [];
-  blogs.forEach((blog) => {
-    blogTitleArray.push({ label: blog.title, value: blog._id });
-  });
-  res.status(201).json({ blogs, blogTitleArray });
-};
-
 exports.makeCommentOnBlog = async (req, res) => {
   const { content, blogId } = req.body;
   const { userId } = req.user;
@@ -145,3 +158,31 @@ exports.makeCommentOnBlog = async (req, res) => {
   });
   res.status(201).json({ success: true });
 };
+
+// aggregate([
+//   {
+//     $match: {
+//       _id: new mongoose.Types.ObjectId("63a271979c6782c99c0dd086"),
+//     },
+//   },
+//   {
+//     $unwind: {
+//       path: "$bookmarks",
+//       includeArrayIndex: "string",
+//     },
+//   },
+//   {
+//     $unwind: {
+//       path: "$bookmarks.category.blogs",
+//       includeArrayIndex: "string",
+//     },
+//   },
+//   {
+//     $lookup: {
+//       from: "blogs",
+//       localField: "bookmarks.category.blogs",
+//       foreignField: "_id",
+//       as: "result",
+//     },
+//   },
+// ]);

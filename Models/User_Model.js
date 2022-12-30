@@ -30,9 +30,9 @@ const userSchema = new mongoose.Schema({
   bookmarks: [
     {
       category: {
-        title: { type: String },
+        title: { type: String, unique: true },
         description: { type: String },
-        blogId: [{ type: mongoose.Schema.Types.ObjectId, ref: "blog" }],
+        blogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "blog" }],
       },
     },
   ],

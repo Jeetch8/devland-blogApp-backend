@@ -12,13 +12,6 @@ exports.checTokenAuthentication = async (req, res, next) => {
   if (!token) {
     throw new CustomError.BadRequestError("No token provided");
   }
-  const userFound = await User.findById(userTokenInfo.userId);
-  if (userFound.accountVerification !== "verified") {
-    throw new CustomError.UnauthorizedError("User not verified");
-  }
-  if (!userFound) {
-    throw new CustomError.UnauthenticatedError("User unauthenticated");
-  }
   req.user = {
     ...userTokenInfo,
   };
