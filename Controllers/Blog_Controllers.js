@@ -23,53 +23,89 @@ exports.createNewBlog = async (req, res) => {
 };
 
 exports.getAllBlogs = async (req, res) => {
-  const headerUserId = req.headers.userid;
-  const blogs = await Blog.aggregate([
-    {
-      $lookup: {
-        from: "users",
-        localField: "creator",
-        foreignField: "_id",
-        as: "results",
-      },
-    },
-    {
-      $unwind: {
-        path: "$results",
-      },
-    },
-    {
-      $project: {
-        "results.password": 0,
-        "results.following": 0,
-        "results.followers": 0,
-        "results.bookmarks": 0,
-        "results.email": 0,
-        creator: 0,
-      },
-    },
-  ]);
-  if (headerUserId) {
-    let userSavedBlogs = await User.findById("63a271979c6782c99c0dd086")
-      .populate({
-        path: "bookmarks",
-        populate: {
-          path: "category.blogs",
-        },
-      })
-      .select("bookmarks");
-    const allBlogList = [];
-    userSavedBlogs.bookmarks.forEach((el) => {
-      el.category.blogs.forEach((blog) => {
-        if (allBlogList.indexOf(blog._id) !== -1) return;
-        allBlogList.push(blog._id);
+  const blogs = await Blog.find({}).populate("creator");
+  if (req.headers.userid) {
+    const user = await User.findById(req.headers.userid);
+    const bookmarks = user.bookmarks;
+    const newBlogArray = [];
+    blogs.forEach((blog) => {
+      const blogBookmarks = [];
+      bookmarks.forEach((el) => {
+        let blogexist = el.category.blogs.indexOf(blog._id);
+        if (blogexist !== -1) {
+          blogBookmarks.push({
+            catTitle: el.category.title,
+            isSaved: true,
+            catId: el._id,
+          });
+        } else {
+          blogBookmarks.push({
+            catTitle: el.category.title,
+            isSaved: false,
+            catId: el._id,
+          });
+        }
       });
+      const sCreator = {
+        name: blog.creator.name,
+        profileImg: blog.creator.profileImg,
+        userid: blog.creator._id,
+        following: blog.creator.following.length,
+        followers: blog.creator.followers.length,
+      };
+      newBlogArray.push({ ...blog._doc, blogBookmarks, creator: sCreator });
     });
-    res.status(200).json({ blogs, bookmarks: userSavedBlogs, allBlogList });
+    res.status(200).json({ blogs: newBlogArray });
   } else {
     res.status(200).json({ blogs });
   }
 };
+
+// const blogs = await Blog.aggregate([
+//   {
+//     $lookup: {
+//       from: "users",
+//       localField: "creator",
+//       foreignField: "_id",
+//       as: "results",
+//     },
+//   },
+//   {
+//     $unwind: {
+//       path: "$results",
+//     },
+//   },
+//   {
+//     $project: {
+//       "results.password": 0,
+//       "results.following": 0,
+//       "results.followers": 0,
+//       "results.bookmarks": 0,
+//       "results.email": 0,
+//       creator: 0,
+//     },
+//   },
+// ]);
+// if (headerUserId) {
+//   let userSavedBlogs = await User.findById("63a271979c6782c99c0dd086")
+//     .populate({
+//       path: "bookmarks",
+//       populate: {
+//         path: "category.blogs",
+//       },
+//     })
+//     .select("bookmarks");
+//   const allBlogList = [];
+//   userSavedBlogs.bookmarks.forEach((el) => {
+//     el.category.blogs.forEach((blog) => {
+//       if (allBlogList.indexOf(blog._id) !== -1) return;
+//       allBlogList.push(blog._id);
+//     });
+//   });
+//   res.status(200).json({ blogs, bookmarks: userSavedBlogs, allBlogList });
+// } else {
+//   res.status(200).json({ blogs });
+// }
 
 exports.getSingleBlog = async (req, res) => {
   const { blogId } = req.params;
