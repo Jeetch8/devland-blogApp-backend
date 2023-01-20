@@ -3,9 +3,11 @@ const {
   editProfile,
   getOwnProfile,
   createBookmarkCategoryWithBlogs,
-  createNewCategoryWithoutBlog,
   addBlogsToCategory,
   getAllBookmarks,
+  createNewBookmarkCategoryWithoutBlog,
+  addBookmarkBlogsToCategory,
+  removeBookmarkBlogfromCategory,
 } = require("../Controllers/User_controllers");
 const {
   checTokenAuthentication,
@@ -14,9 +16,10 @@ const {
 router.post("/updateprofile", checTokenAuthentication, editProfile);
 router.get("/getOwnProfile", checTokenAuthentication, getOwnProfile);
 router.post("/editprofile", checTokenAuthentication, editProfile);
-router.post("/createBookmarkCatWithBlog", createBookmarkCategoryWithBlogs);
-router.post("/createNewCatWithoutBlog", createNewCategoryWithoutBlog);
-router.post("/addBlogsToCategory", addBlogsToCategory);
 router.get("/getAllBookmarks", getAllBookmarks);
+router.post("/createBookmarkCatWithBlog", createBookmarkCategoryWithBlogs);
+router.post("/createNewCatWithoutBlog", createNewBookmarkCategoryWithoutBlog);
+router.post("/addBlogsToCategory", addBookmarkBlogsToCategory);
+router.post("/removeBlogFromBookmarkCategory", removeBookmarkBlogfromCategory);
 
 module.exports = router;
