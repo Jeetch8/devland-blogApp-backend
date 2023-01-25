@@ -6,14 +6,11 @@ const blogSchema = new mongoose.Schema(
       type: String,
       require: [true, "Blog Title cannot be empty"],
     },
-    HTMLBody: {
+    content: {
       type: String,
-      require: [true, "Body cannot be emtpy"],
+      require: [true, "Blog content is required"],
     },
     blogImg: {
-      type: String,
-    },
-    readingTime: {
       type: String,
     },
     commentArray: [

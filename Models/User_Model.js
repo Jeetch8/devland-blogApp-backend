@@ -17,28 +17,13 @@ const userSchema = new mongoose.Schema({
     type: String,
     require: true,
   },
-  following: [
-    {
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
-    },
-  ],
-  followers: [
-    {
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
-    },
-  ],
   bookmarks: [
     {
       category: {
-        title: { type: String, unique: true },
-        description: { type: String },
-        blogs: [{ type: mongoose.Schema.Types.ObjectId, ref: "blog" }],
+        blogId: [{ type: mongoose.Schema.Types.ObjectId, ref: "blog" }],
       },
     },
   ],
-  accountVerification: {
-    type: String,
-  },
 });
 
 userSchema.pre("save", async function () {
