@@ -54,7 +54,7 @@ exports.getSavedBlogs = async (req, res) => {
 };
 
 exports.createBookmarkCategoryWithBlogs = async (req, res) => {
-  const newCat = await User.findByIdAndUpdate("63a271979c6782c99c0dd086", {
+  const newCat = await User.findByIdAndUpdate(req.body.userId, {
     $push: {
       bookmarks: {
         "category.title": req.body.title,
@@ -67,7 +67,7 @@ exports.createBookmarkCategoryWithBlogs = async (req, res) => {
 };
 
 exports.createNewBookmarkCategoryWithoutBlog = async (req, res) => {
-  const newCat = await User.findByIdAndUpdate("63a271979c6782c99c0dd086", {
+  const newCat = await User.findByIdAndUpdate(req.body.userId, {
     $push: {
       bookmarks: {
         "category.title": req.body.title,
@@ -81,7 +81,7 @@ exports.createNewBookmarkCategoryWithoutBlog = async (req, res) => {
 
 exports.updateBookmarkCategoryName = async (req, res) => {
   const updateName = await User.updateOne(
-    { _id: "63a271979c6782c99c0dd086" },
+    { _id: req.body.userId },
     { $set: { "bookmarks.$[m].category.title": "testing updates" } },
     { arrayFilters: [{ "m._id": "63a722b1011ed79d8f2c4820" }] }
   );
@@ -90,7 +90,7 @@ exports.updateBookmarkCategoryName = async (req, res) => {
 
 exports.addBookmarkBlogsToCategory = async (req, res) => {
   const updatingBookmarks = await User.updateOne(
-    { _id: "63a271979c6782c99c0dd086" },
+    { _id: req.body.userId },
     {
       $push: {
         "bookmarks.$[m].category.blogs": req.body.blogId,
@@ -109,7 +109,7 @@ exports.addBookmarkBlogsToCategory = async (req, res) => {
 
 exports.removeBookmarkBlogfromCategory = async (req, res) => {
   const updatingBookmarks = await User.updateOne(
-    { _id: "63a271979c6782c99c0dd086" },
+    { _id: req.body.userId },
     {
       $pull: {
         "bookmarks.$[m].category.blogs": req.body.blogId,
