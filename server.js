@@ -8,9 +8,15 @@ const morgan = require("morgan");
 const expressFileUpload = require("express-fileupload");
 const notFoundMiddleware = require("./Middleware/Not_Found_Middleware");
 const errorHandlerMiddleware = require("./Middleware/error-handler");
-
+const cors = require("cors");
 // Middleware
-app.use(express.json({ limit: "100mb" }));
+
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.static("./public"));
 app.use(expressFileUpload({ tempFileDir: "/tmp/", useTempFiles: true }));

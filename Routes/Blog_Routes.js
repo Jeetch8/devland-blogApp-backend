@@ -2,8 +2,10 @@ const {
   getAllBlogs,
   getSingleBlog,
   createNewBlog,
+  deleteBlog,
+  makeCommentOnBlog,
+  likeBlog,
 } = require("../Controllers/Blog_Controllers");
-const { createBookmarkCategory } = require("../Controllers/User_controllers");
 const {
   checTokenAuthentication,
 } = require("../Middleware/Authentication_Middleware");
@@ -11,7 +13,10 @@ const {
 const router = require("express").Router();
 
 router.get("/", getAllBlogs);
-router.get("/blog/:blogId", getSingleBlog);
-router.post("/createNewBlog", checTokenAuthentication, createNewBlog);
+router.get("/:blogId", getSingleBlog);
+router.post("/", checTokenAuthentication, createNewBlog);
+router.delete("/:blogId", checTokenAuthentication, deleteBlog);
+router.put("/:blogId/comment", checTokenAuthentication, makeCommentOnBlog);
+router.patch("/:blogId/like", checTokenAuthentication, likeBlog);
 
 module.exports = router;

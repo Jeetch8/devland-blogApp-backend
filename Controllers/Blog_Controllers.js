@@ -1,16 +1,11 @@
 const Blog = require("../Models/Blog_Model");
 const CustomError = require("../errors");
-const readingTime = require("reading-time");
-const User = require("../Models/User_Model");
-const { convert } = require("html-to-text");
-const mongoose = require("mongoose");
 
 exports.createNewBlog = async (req, res) => {
   const { content, title, blogImg, status } = req.body;
   if (!content || !title || !blogImg || !status) {
     throw new CustomError.BadRequestError("All feilds are required");
   }
-
   const newBlog = await Blog.create({
     content,
     title,
@@ -27,8 +22,14 @@ exports.getAllBlogs = async (req, res) => {
 };
 
 exports.getSingleBlog = async (req, res) => {
-  const { blogId } = req.params;
-  const blog = await Blog.findById(blogId);
+  const id = req.params.blogId;
+  const blog = await Blog.findOne({ _id: id }).populate({
+    path: "commentArray",
+    populate: {
+      path: "user",
+      select: "name",
+    },
+  });
   res.status(200).json({ blog });
 };
 
@@ -68,24 +69,6 @@ exports.editBlog = async (req, res) => {
   res.status(200).json({ success: true, updateBlog });
 };
 
-exports.deleteComment = async (req, res) => {
-  const { commentId, blogId } = req.body;
-  console.log(commentId);
-  await Blog.updateOne(
-    {
-      _id: blogId,
-    },
-    {
-      $pull: {
-        commentArray: {
-          _id: commentId,
-        },
-      },
-    }
-  );
-  res.status(200).json({ success: true });
-};
-
 exports.publisDrfthBlog = async (req, res) => {
   const { blogId } = req.body;
   const { userId } = req.body;
@@ -105,5 +88,17 @@ exports.makeCommentOnBlog = async (req, res) => {
   const comment = await Blog.findByIdAndUpdate(blogId, {
     $push: { commentArray: [{ user: userId, commentText: content }] },
   });
+  res.status(201).json({ success: true });
+};
+
+exports.likeBlog = async (req, res) => {
+  const { blogId } = req.params;
+  const { userId } = req.user;
+  const blog = await Blog.findById(blogId);
+  if (blog.likedArray.includes(userId)) {
+    throw new CustomError.BadRequestError("Cannot like a blog twice");
+  }
+  blog.likedArray.push(userId);
+  blog.save();
   res.status(201).json({ success: true });
 };
