@@ -5,6 +5,7 @@ const {
   deleteBlog,
   makeCommentOnBlog,
   likeBlog,
+  getSingleBlogForRegisterdUser,
 } = require("../Controllers/Blog_Controllers");
 const {
   checTokenAuthentication,
@@ -14,6 +15,11 @@ const router = require("express").Router();
 
 router.get("/", getAllBlogs);
 router.get("/:blogId", getSingleBlog);
+router.get(
+  "/registerd_user/:blogId",
+  checTokenAuthentication,
+  getSingleBlogForRegisterdUser
+);
 router.post("/", checTokenAuthentication, createNewBlog);
 router.delete("/:blogId", checTokenAuthentication, deleteBlog);
 router.put("/:blogId/comment", checTokenAuthentication, makeCommentOnBlog);

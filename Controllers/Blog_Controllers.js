@@ -1,5 +1,6 @@
 const Blog = require("../Models/Blog_Model");
 const CustomError = require("../errors");
+const User = require("../Models/User_Model");
 
 exports.createNewBlog = async (req, res) => {
   const { content, title, blogImg, status } = req.body;
@@ -31,6 +32,33 @@ exports.getSingleBlog = async (req, res) => {
     },
   });
   res.status(200).json({ blog });
+};
+
+exports.getSingleBlogForRegisterdUser = async (req, res) => {
+  const { blogId } = req.params;
+  const { userId } = req.user;
+  if (!blogId) {
+    throw new CustomError.BadRequestError("Blog id is required");
+  }
+  const blog = await Blog.findById(blogId);
+  const user = await User.findById(userId);
+  let isBookmarked = false;
+  for (let i = 0; i < user.bookmarks.length; i++) {
+    if (user.bookmarks[i]._id.toString() === blogId) {
+      isBookmarked = true;
+      break;
+    }
+  }
+  console.log(user.bookmarks);
+  let isLiked = false;
+  for (let i = 0; i < blog.likedArray.length; i++) {
+    if (blog.likedArray[i]._id.toString() === userId) {
+      isLiked = true;
+      break;
+    }
+  }
+  console.log(isLiked, isBookmarked);
+  res.status(200).json({ blog, isBookmarked, isLiked });
 };
 
 exports.updateBlog = async (req, res) => {

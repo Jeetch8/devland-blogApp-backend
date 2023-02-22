@@ -2,12 +2,8 @@ const router = require("express").Router();
 const {
   editProfile,
   getOwnProfile,
-  createBookmarkCategoryWithBlogs,
-  addBlogsToCategory,
   getAllBookmarks,
-  createNewBookmarkCategoryWithoutBlog,
-  addBookmarkBlogsToCategory,
-  removeBookmarkBlogfromCategory,
+  toggleBookmark,
 } = require("../Controllers/User_controllers");
 const {
   checTokenAuthentication,
@@ -16,10 +12,11 @@ const {
 router.post("/updateprofile", checTokenAuthentication, editProfile);
 router.get("/getOwnProfile", checTokenAuthentication, getOwnProfile);
 router.post("/editprofile", checTokenAuthentication, editProfile);
-router.get("/getAllBookmarks", getAllBookmarks);
-router.post("/createBookmarkCatWithBlog", createBookmarkCategoryWithBlogs);
-router.post("/createNewCatWithoutBlog", createNewBookmarkCategoryWithoutBlog);
-router.post("/addBlogsToCategory", addBookmarkBlogsToCategory);
-router.post("/removeBlogFromBookmarkCategory", removeBookmarkBlogfromCategory);
+router.get("/getAllBookmarks", checTokenAuthentication, getAllBookmarks);
+router.patch(
+  "/toggleBookmark/:blogId",
+  checTokenAuthentication,
+  toggleBookmark
+);
 
 module.exports = router;

@@ -19,9 +19,7 @@ const userSchema = new mongoose.Schema({
   },
   bookmarks: [
     {
-      category: {
-        blogId: [{ type: mongoose.Schema.Types.ObjectId, ref: "blog" }],
-      },
+      blogId: { type: mongoose.Schema.Types.ObjectId, ref: "blog" },
     },
   ],
 });

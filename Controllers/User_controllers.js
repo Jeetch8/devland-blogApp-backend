@@ -38,9 +38,9 @@ exports.editProfile = async (req, res) => {
 };
 
 exports.getOwnProfile = async (req, res) => {
-  const { userId } = req.cookies;
+  const userId = req.user.userId;
   const user = await User.findById(userId).select(
-    "name email gender profileImg address"
+    "name email gender profileImg"
   );
   res.status(200).json({ user });
 };
@@ -53,125 +53,35 @@ exports.getSavedBlogs = async (req, res) => {
   res.status(200).json({ blogs });
 };
 
-exports.createBookmarkCategoryWithBlogs = async (req, res) => {
-  const newCat = await User.findByIdAndUpdate(req.body.userId, {
-    $push: {
-      bookmarks: {
-        "category.title": req.body.title,
-        "category.description": req.body.description,
-        "category.blogs": req.body.blogId,
-      },
-    },
-  });
-  res.status(200).json({ success: true });
-};
-
-exports.createNewBookmarkCategoryWithoutBlog = async (req, res) => {
-  const newCat = await User.findByIdAndUpdate(req.body.userId, {
-    $push: {
-      bookmarks: {
-        "category.title": req.body.title,
-        "category.description": req.body.description,
-        // "category.blogs": req.body.blogId,
-      },
-    },
-  });
-  res.status(200).json({ success: true });
-};
-
-exports.updateBookmarkCategoryName = async (req, res) => {
-  const updateName = await User.updateOne(
-    { _id: req.body.userId },
-    { $set: { "bookmarks.$[m].category.title": "testing updates" } },
-    { arrayFilters: [{ "m._id": "63a722b1011ed79d8f2c4820" }] }
-  );
-  res.status(200).json({ success: true });
-};
-
-exports.addBookmarkBlogsToCategory = async (req, res) => {
-  const updatingBookmarks = await User.updateOne(
-    { _id: req.body.userId },
-    {
-      $push: {
-        "bookmarks.$[m].category.blogs": req.body.blogId,
-      },
-    },
-    {
-      arrayFilters: [
-        {
-          "m._id": req.body.catId,
-        },
-      ],
+exports.toggleBookmark = async (req, res) => {
+  const { blogId } = req.params;
+  const { userId } = req.user;
+  const user = await User.findById(userId);
+  const blog = await Blog.findById(blogId);
+  if (!blog) {
+    throw new CustomError.NotFoundError("Blog not found");
+  }
+  let isBookmarked = false;
+  for (let i = 0; i < user.bookmarks.length; i++) {
+    if (user.bookmarks[i]._id.toString() === blogId) {
+      isBookmarked = true;
+      break;
     }
-  );
-  res.status(200).json({ success: true });
+  }
+  if (isBookmarked) {
+    await User.findByIdAndUpdate(userId, {
+      $pull: { bookmarks: { _id: blogId } },
+    });
+    return res.status(201).json({ success: true, bookmarked: !isBookmarked });
+  }
+  await User.findByIdAndUpdate(userId, {
+    $push: { bookmarks: { _id: blogId } },
+  });
+  res.status(201).json({ success: true, bookmarked: !isBookmarked });
 };
-
-exports.removeBookmarkBlogfromCategory = async (req, res) => {
-  const updatingBookmarks = await User.updateOne(
-    { _id: req.body.userId },
-    {
-      $pull: {
-        "bookmarks.$[m].category.blogs": req.body.blogId,
-      },
-    },
-    {
-      arrayFilters: [
-        {
-          "m._id": req.body.catId,
-        },
-      ],
-    }
-  );
-  res.status(200).json({ success: true });
-};
-
-// Update category name
-// const update = await User.updateOne(
-//   { _id: "63a271979c6782c99c0dd086" },
-//   { $set: { "bookmarks.$[m].category.title": "testing updates" } },
-//   { arrayFilters: [{ "m._id": "63a722b1011ed79d8f2c4820" }] }
-// );
-
-// creating new category with blogs
-// const updater = await User.findByIdAndUpdate("63a271979c6782c99c0dd086", {
-//   $push: {
-//     bookmarks: {
-//       "category.title": "Test category4",
-//       "category.blogs": [
-//         "63a2897b7cb91708a5acaf83",
-//         "63a2897b7cb91708a5acaf83",
-//         "63a2897b7cb91708a5acaf83",
-//         "63a2897b7cb91708a5acaf83",
-//         "63a2897b7cb91708a5acaf83",
-//       ],
-//     },
-//   },
-// $push: { bookmarks: { "category.blogs": "63a2897b7cb91708a5acaf83" } },
-// });
-
-// Pushing new blogs
-// const update = await User.updateOne(
-//   { _id: "63a271979c6782c99c0dd086" },
-//   {
-//     $push: {
-//       "bookmarks.$[m].category.blogs": {
-//         blogId: "63a2897b7cb91708a5acaf83",
-//         notes: "Test notes",
-//       },
-//     },
-//   },
-//   {
-//     arrayFilters: [
-//       {
-//         "m._id": "63a722b1011ed79d8f2c4820",
-//         // "b.blogId": "63a2897b7cb91708a5acaf83",
-//       },
-//     ],
-//   }
-// );
 
 exports.getAllBookmarks = async (req, res) => {
-  const user = await User.findById(req.headers.userid);
+  const { userId } = req.user;
+  const user = await User.findById(userId);
   res.status(200).json({ bookmarks: user.bookmarks });
 };
