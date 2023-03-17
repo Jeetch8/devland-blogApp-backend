@@ -49,7 +49,6 @@ exports.getSingleBlogForRegisterdUser = async (req, res) => {
       break;
     }
   }
-  console.log(user.bookmarks);
   let isLiked = false;
   for (let i = 0; i < blog.likedArray.length; i++) {
     if (blog.likedArray[i]._id.toString() === userId) {
@@ -57,7 +56,6 @@ exports.getSingleBlogForRegisterdUser = async (req, res) => {
       break;
     }
   }
-  console.log(isLiked, isBookmarked);
   res.status(200).json({ blog, isBookmarked, isLiked });
 };
 
@@ -129,4 +127,13 @@ exports.likeBlog = async (req, res) => {
   blog.likedArray.push(userId);
   blog.save();
   res.status(201).json({ success: true });
+};
+
+exports.searchBlogs = async (req, res) => {
+  const { searchQuery } = req.query;
+  console.log(searchQuery);
+  const blogs = await Blog.find({
+    title: { $regex: searchQuery, $options: "i" },
+  });
+  res.status(200).json({ blogs });
 };

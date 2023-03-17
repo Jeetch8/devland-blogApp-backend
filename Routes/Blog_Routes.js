@@ -6,6 +6,7 @@ const {
   makeCommentOnBlog,
   likeBlog,
   getSingleBlogForRegisterdUser,
+  searchBlogs,
 } = require("../Controllers/Blog_Controllers");
 const {
   checTokenAuthentication,
@@ -13,6 +14,7 @@ const {
 
 const router = require("express").Router();
 
+router.get("/search", searchBlogs);
 router.get("/", getAllBlogs);
 router.get("/:blogId", getSingleBlog);
 router.get(
