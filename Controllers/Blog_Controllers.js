@@ -40,7 +40,13 @@ exports.getSingleBlogForRegisterdUser = async (req, res) => {
   if (!blogId) {
     throw new CustomError.BadRequestError("Blog id is required");
   }
-  const blog = await Blog.findById(blogId);
+  const blog = await Blog.findById(blogId).populate({
+    path: "commentArray",
+    populate: {
+      path: "userId",
+      select: "name profileImg",
+    },
+  });
   const user = await User.findById(userId);
   let isBookmarked = false;
   for (let i = 0; i < user.bookmarks.length; i++) {
@@ -109,10 +115,10 @@ exports.publisDrfthBlog = async (req, res) => {
 
 exports.makeCommentOnBlog = async (req, res) => {
   const { content, blogId } = req.body;
+  console.log(content, blogId);
   const { userId } = req.user;
-  console.log(userId);
   const comment = await Blog.findByIdAndUpdate(blogId, {
-    $push: { commentArray: [{ user: userId, commentText: content }] },
+    $push: { commentArray: [{ userId, commentText: content }] },
   });
   res.status(201).json({ success: true });
 };
