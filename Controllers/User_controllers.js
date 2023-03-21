@@ -13,7 +13,6 @@ exports.makeCommentOnBlog = async (req, res) => {
     },
     { new: true }
   );
-  console.log(comment);
   res.status(201).json({ success: true });
 };
 
@@ -21,7 +20,7 @@ exports.likeBlog = async (req, res) => {
   const { blogId } = req.params;
   const { userId } = req.user;
   const blog = await Blog.findByIdAndUpdate(blogId, {
-    $push: { likes: userId },
+    $push: { likes: { userId } },
   });
   res.status(201).json({ success: true });
 };
@@ -70,18 +69,29 @@ exports.toggleBookmark = async (req, res) => {
   }
   if (isBookmarked) {
     await User.findByIdAndUpdate(userId, {
-      $pull: { bookmarks: { _id: blogId } },
+      $pull: { bookmarks: { blogId: blogId } },
     });
     return res.status(201).json({ success: true, bookmarked: !isBookmarked });
   }
-  await User.findByIdAndUpdate(userId, {
-    $push: { bookmarks: { _id: blogId } },
+  const bookmark = await User.findOneAndUpdate(userId, {
+    $push: { bookmarks: { blogId: blogId } },
   });
-  res.status(201).json({ success: true, bookmarked: !isBookmarked });
+  res.status(201).json({ success: true, bookmarked: bookmark });
 };
 
 exports.getAllBookmarks = async (req, res) => {
   const { userId } = req.user;
-  const user = await User.findById(userId);
-  res.status(200).json({ bookmarks: user.bookmarks });
+  const user = await User.findById(userId).populate({
+    path: "bookmarks",
+    populate: {
+      path: "blogId",
+      select: "title content blogImg likedArray",
+    },
+  });
+  const temp = user.bookmarks.map((el) => {
+    const { likedArray, blogImg, content, title, _id } = el.blogId;
+    const likes = likedArray.length;
+    return { blogImg, likes, content, title, _id };
+  });
+  res.status(200).json({ bookmarks: temp });
 };

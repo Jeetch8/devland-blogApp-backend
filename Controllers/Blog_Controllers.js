@@ -50,14 +50,14 @@ exports.getSingleBlogForRegisterdUser = async (req, res) => {
   const user = await User.findById(userId);
   let isBookmarked = false;
   for (let i = 0; i < user.bookmarks.length; i++) {
-    if (user.bookmarks[i]._id.toString() === blogId) {
+    if (user.bookmarks[i].blogId.toString() === blogId) {
       isBookmarked = true;
       break;
     }
   }
   let isLiked = false;
   for (let i = 0; i < blog.likedArray.length; i++) {
-    if (blog.likedArray[i]._id.toString() === userId) {
+    if (blog.likedArray[i].userId.toString() === userId) {
       isLiked = true;
       break;
     }
@@ -68,7 +68,6 @@ exports.getSingleBlogForRegisterdUser = async (req, res) => {
 exports.updateBlog = async (req, res) => {
   const { blogId } = req.params;
   const { token, ...restValues } = req.body;
-  console.log(restValues);
   const updatedBlog = await Blog.findByIdAndUpdate(blogId, restValues, {
     new: true,
   });
@@ -88,7 +87,6 @@ exports.deleteBlog = async (req, res) => {
 
 exports.editBlog = async (req, res) => {
   const { blogId } = req.params;
-  console.log(blogId);
   const updateBlog = await Blog.findByIdAndUpdate(
     blogId,
     {
@@ -115,7 +113,6 @@ exports.publisDrfthBlog = async (req, res) => {
 
 exports.makeCommentOnBlog = async (req, res) => {
   const { content, blogId } = req.body;
-  console.log(content, blogId);
   const { userId } = req.user;
   const comment = await Blog.findByIdAndUpdate(blogId, {
     $push: { commentArray: [{ userId, commentText: content }] },
@@ -130,14 +127,13 @@ exports.likeBlog = async (req, res) => {
   if (blog.likedArray.includes(userId)) {
     throw new CustomError.BadRequestError("Cannot like a blog twice");
   }
-  blog.likedArray.push(userId);
+  blog.likedArray.push({ userId });
   blog.save();
   res.status(201).json({ success: true });
 };
 
 exports.searchBlogs = async (req, res) => {
   const { searchQuery } = req.query;
-  console.log(searchQuery);
   const blogs = await Blog.find({
     title: { $regex: searchQuery, $options: "i" },
   });
